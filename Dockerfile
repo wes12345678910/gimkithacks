@@ -1,27 +1,29 @@
-# 1. Use Python 3.9
+# 1. Use a more stable Python base
 FROM python:3.9-slim
 
-# 2. Install dependencies + Add Google Chrome Repository
+# 2. Install essential tools and Google Chrome
 RUN apt-get update && apt-get install -y \
-    wget gnupg unzip curl \
-    && wget -q -O - https://google.com | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://google.com stable main" >> /etc/apt/sources.list.d/google-chrome.list' \
+    wget \
+    gnupg \
+    ca-certificates \
+    curl \
+    --no-install-recommends \
+    && wget -q -O - https://google.com | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg \
+    && sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] http://google.com stable main" >> /etc/apt/sources.list.d/google-chrome.list' \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. Set up working directory
+# 3. Setup work directory
 WORKDIR /app
 
-# 4. Copy requirements and install
+# 4. Copy requirements first (improves build speed)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Copy the rest of your code
+# 5. Copy your code and cleanup
 COPY . .
-
-# 6. Delete the Windows driver if it's there
 RUN rm -f chromedriver.exe
 
-# 7. Start your app
+# 6. Start command
 CMD ["python", "main.py"]
