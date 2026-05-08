@@ -1,18 +1,20 @@
-# This image already has Python, Chrome, and the driver installed
-FROM joyzoursky/python-selenium:3.9-selenium
+# 1. Use the official Selenium/Chrome image (most reliable for scraping)
+FROM selenium/standalone-chrome:latest
 
-# Set up your working directory
+# 2. Switch to root to install Python
+USER root
+RUN apt-get update && apt-get install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
+
+# 3. Setup work directory
 WORKDIR /app
 
-# Copy requirements and install them
+# 4. Copy requirements and install
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-# Copy your code
+# 5. Copy your code and cleanup
 COPY . .
-
-# Delete the Windows driver to be safe
 RUN rm -f chromedriver.exe
 
-# Start your app
-CMD ["python", "main.py"]
+# 6. Start command (using python3)
+CMD ["python3", "main.py"]
