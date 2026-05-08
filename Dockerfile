@@ -1,30 +1,18 @@
-# 1. Use a standard Python image
-FROM python:3.9-slim
+# This image already has Python, Chrome, and the driver installed
+FROM joyzoursky/python-selenium:3.9-selenium
 
-# 2. Install Chrome and its dependencies
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    ca-certificates \
-    curl \
-    unzip \
-    --no-install-recommends \
-    && wget -q -O - https://google.com | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
-    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://google.com stable main" > /etc/apt/sources.list.d/google-chrome.list \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable \
-    && rm -rf /var/lib/apt/lists/*
-
-# 3. Setup work directory
+# Set up your working directory
 WORKDIR /app
 
-# 4. Copy requirements and install
+# Copy requirements and install them
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Copy your code and remove Windows files
+# Copy your code
 COPY . .
+
+# Delete the Windows driver to be safe
 RUN rm -f chromedriver.exe
 
-# 6. Start command
+# Start your app
 CMD ["python", "main.py"]
